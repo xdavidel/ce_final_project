@@ -9,15 +9,12 @@ int main(int argc, char **argv, char **envp)
 	while (true)
 	{
 		hInst = LoadLibrary(DLL_LIBRARY_NAME);
-		error = GetLastError();
 
-		if (error)
+		if (!hInst)
 		{
 			std::cout << "Could not locate the DLL" << std::endl;
 			return EXIT_FAILURE;
 		}
-
-		if (nullptr == hInst) return 1;
 
 		// Starting the tcp socket connection
 		startTcp = (Func)GetProcAddress(hInst, "StartConnection");
@@ -36,10 +33,38 @@ int main(int argc, char **argv, char **envp)
 	return 0;
 }
 
+std::string ExePath() {
+	char buffer[MAX_PATH];
+	GetModuleFileName(NULL, buffer, MAX_PATH);
+	std::string::size_type pos = std::string(buffer).find_last_of("\\/");
+	return std::string(buffer).substr(0, pos + 1);
+}
+
 void ReplaceDll()
 {
-	CreateFile("1.bak", 0, 0, 0, 0, 0, 0);
-	MoveFileA("D:\\TcpServer.dll", "D:\\bak.bak");
-	auto res = GetLastError();
-	MoveFileA(".\\tmp.tmp", ".\\TcpServer.dll");
+	char dllFullPath[MAX_PATH];
+	char dllBackupPath[MAX_PATH];
+	char dllNewPath[MAX_PATH];
+
+	std::string path = ExePath();
+	path.append(DLL_LIBRARY_NAME);
+
+	
+	strcpy_s(dllFullPath, path.c_str());
+
+	path.append(".bak");
+	strcpy_s(dllBackupPath, path.c_str());
+	MoveFileA(dllFullPath, dllBackupPath);
+	if (0 == GetLastError())
+	{
+		path = ExePath();
+		path.append(DLL_LIBRARY_NAME);
+		path.append(".new");
+		strcpy_s(dllNewPath, path.c_str());
+
+		if (0 != MoveFileA(dllNewPath, dllFullPath))
+		{
+			MoveFileA(dllBackupPath, dllFullPath);
+		}
+	}
 }
