@@ -1,47 +1,9 @@
-"""
-Very simple HTTP server in python.
-Usage::
-    ./dummy-web-server.py [<port>]
-Send a GET request::
-    curl http://localhost
-Send a HEAD request::
-    curl -I http://localhost
-Send a POST request::
-    curl -d "foo=bar&bin=baz" http://localhost
-"""
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from socket import *
 
-
-class S(BaseHTTPRequestHandler):
-    def _set_headers(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-
-    def do_GET(self):
-        self._set_headers()
-        self.wfile.write("Success\n")
-
-    def do_HEAD(self):
-        self._set_headers()
-
-    def do_POST(self):
-        # Doesn't do anything with posted data
-        self._set_headers()
-        self.wfile.write("Success\n")
-
-
-def run(server_class=HTTPServer, handler_class=S, port=6363):
-    server_address = ('', port)
-    httpd = server_class(server_address, handler_class)
-    print ('Server started at port %s...' % port)
-    httpd.serve_forever()
-
-
-if __name__ == "__main__":
-    from sys import argv
-
-    if len(argv) == 2:
-        run(port=int(argv[1]))
-    else:
-        run()
+s = socket(AF_INET, SOCK_STREAM)
+HOST = '127.0.0.1'
+PORT = 6363
+s.connect((HOST, PORT))
+s.send("update")
+while True:
+    pass

@@ -13,10 +13,12 @@
 #define INDLL_H
 
 #ifdef EXPORTING_DLL
-extern "C" __declspec(dllexport) const wchar_t* GetRequest();
+extern "C" __declspec(dllexport) const wchar_t* HttpGet(utility::string_t url);
+extern "C" __declspec(dllexport) const wchar_t* HttpPost(utility::string_t url, web::json::value data);
 
 #else
-extern "C" __declspec(dllexport) const wchar_t* GetRequest();
+extern "C" __declspec(dllexport) const wchar_t* HttpGet(utility::string_t url);
+extern "C" __declspec(dllexport) const wchar_t* HttpPost(utility::string_t url, web::json::value data);
 
 #endif
 

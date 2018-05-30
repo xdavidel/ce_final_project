@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.27428.2037
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ratatouille", "Ratatouille\Ratatouille.vcxproj", "{626D23D4-AB0D-40AD-8432-03279A051B5E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RestApi", "RestApi\RestApi.vcxproj", "{C97540E3-4843-4870-82FE-A7A93BBB1F87}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TcpServer", "TcpServer\TcpServer.vcxproj", "{A65B1FBB-2660-497A-846C-D48AB69DF125}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,16 +27,16 @@ Global
 		{626D23D4-AB0D-40AD-8432-03279A051B5E}.Release|x64.Build.0 = Release|x64
 		{626D23D4-AB0D-40AD-8432-03279A051B5E}.Release|x86.ActiveCfg = Release|Win32
 		{626D23D4-AB0D-40AD-8432-03279A051B5E}.Release|x86.Build.0 = Release|Win32
-		{C97540E3-4843-4870-82FE-A7A93BBB1F87}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{C97540E3-4843-4870-82FE-A7A93BBB1F87}.Debug|x64.ActiveCfg = Debug|x64
-		{C97540E3-4843-4870-82FE-A7A93BBB1F87}.Debug|x64.Build.0 = Debug|x64
-		{C97540E3-4843-4870-82FE-A7A93BBB1F87}.Debug|x86.ActiveCfg = Debug|Win32
-		{C97540E3-4843-4870-82FE-A7A93BBB1F87}.Debug|x86.Build.0 = Debug|Win32
-		{C97540E3-4843-4870-82FE-A7A93BBB1F87}.Release|Any CPU.ActiveCfg = Release|Win32
-		{C97540E3-4843-4870-82FE-A7A93BBB1F87}.Release|x64.ActiveCfg = Release|x64
-		{C97540E3-4843-4870-82FE-A7A93BBB1F87}.Release|x64.Build.0 = Release|x64
-		{C97540E3-4843-4870-82FE-A7A93BBB1F87}.Release|x86.ActiveCfg = Release|Win32
-		{C97540E3-4843-4870-82FE-A7A93BBB1F87}.Release|x86.Build.0 = Release|Win32
+		{A65B1FBB-2660-497A-846C-D48AB69DF125}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{A65B1FBB-2660-497A-846C-D48AB69DF125}.Debug|x64.ActiveCfg = Debug|x64
+		{A65B1FBB-2660-497A-846C-D48AB69DF125}.Debug|x64.Build.0 = Debug|x64
+		{A65B1FBB-2660-497A-846C-D48AB69DF125}.Debug|x86.ActiveCfg = Debug|Win32
+		{A65B1FBB-2660-497A-846C-D48AB69DF125}.Debug|x86.Build.0 = Debug|Win32
+		{A65B1FBB-2660-497A-846C-D48AB69DF125}.Release|Any CPU.ActiveCfg = Release|Win32
+		{A65B1FBB-2660-497A-846C-D48AB69DF125}.Release|x64.ActiveCfg = Release|x64
+		{A65B1FBB-2660-497A-846C-D48AB69DF125}.Release|x64.Build.0 = Release|x64
+		{A65B1FBB-2660-497A-846C-D48AB69DF125}.Release|x86.ActiveCfg = Release|Win32
+		{A65B1FBB-2660-497A-846C-D48AB69DF125}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
