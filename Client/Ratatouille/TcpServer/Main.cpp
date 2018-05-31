@@ -5,8 +5,9 @@ std::unordered_map<std::string, IntFunc> fList;
 
 int OnAccept(char* buffer)
 {
-	std::cout << "Connection sent " << buffer << std::endl;
-	return fList[buffer]();
+	IntFunc toRun = fList[buffer];
+	if (toRun) return toRun();
+	else return Echo(buffer);
 }
 
 BOOL WINAPI DllMain(
@@ -61,6 +62,12 @@ void StartConnection()
 	listener.start(port);
 
 	return;
+}
+
+const int Echo(char* buffer)
+{
+	std::cout << buffer << std::endl;
+	return -1;
 }
 
 const int Update()

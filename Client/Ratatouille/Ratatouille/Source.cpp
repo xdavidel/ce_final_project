@@ -54,15 +54,15 @@ void ReplaceDll()
 
 	path.append(".bak");
 	strcpy_s(dllBackupPath, path.c_str());
-	MoveFileA(dllFullPath, dllBackupPath);
+	MoveFile(dllFullPath, dllBackupPath);
 	if (0 == GetLastError())
 	{
 		path = ExePath();
 		path.append(DLL_LIBRARY_NAME);
 		path.append(".new");
 		strcpy_s(dllNewPath, path.c_str());
-
-		if (0 != MoveFileA(dllNewPath, dllFullPath))
+		MoveFile(dllNewPath, dllFullPath);
+		if (0 != GetLastError())
 		{
 			MoveFileA(dllBackupPath, dllFullPath);
 		}
