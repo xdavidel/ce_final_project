@@ -59,13 +59,11 @@ void tcp_listener::start(unsigned short port)
 
 		int recvbuflen = DEFAULT_BUFLEN;
 
-		char sendbuf[] = "this is a test";
-		char recvbuf[DEFAULT_BUFLEN] = { 0 };
-
 		int iResult;
 
 
 		do {
+			char recvbuf[DEFAULT_BUFLEN] = { 0 };
 			iResult = recv(clientSocket, recvbuf, recvbuflen, 0);
 			if (iResult > 0)
 			{
@@ -83,7 +81,9 @@ void tcp_listener::start(unsigned short port)
 				printf("recv failed: %d\n", WSAGetLastError());
 
 			}
-		} while (iResult > 0);
+		} while (iResult != 0);
+
+		closesocket(clientSocket);
 
 	}
 	else

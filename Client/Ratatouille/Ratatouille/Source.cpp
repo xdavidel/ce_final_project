@@ -3,7 +3,6 @@
 int main(int argc, char **argv, char **envp)
 {
 	DWORD error;
-	Callback fn;
 	Func startTcp;
 
 	while (true)
