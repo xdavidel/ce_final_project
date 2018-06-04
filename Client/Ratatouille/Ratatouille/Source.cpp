@@ -1,27 +1,26 @@
 #include "Source.h"
 
+#define START_CCONNECTION "StartConnection"
+#define EXECUTION_PATH "GetExecutablePath"
+
 int main(int argc, char **argv, char **envp)
 {
-	DWORD error;
 	Func startTcp;
 
 	while (true)
 	{
+		// Trying to load DLL
 		hInst = LoadLibrary(DLL_LIBRARY_NAME);
+		if (!hInst) return LoadingError(DLL_LIBRARY_NAME);
 
-		if (!hInst)
-		{
-			std::cout << "Could not locate the DLL" << std::endl;
-			return EXIT_FAILURE;
-		}
+		// Getting the Current Path function from DLL
+		GetExecutablePath = (CharArrayFunc)GetProcAddress(hInst, EXECUTION_PATH);
+		if (!GetExecutablePath) return LoadingError(EXECUTION_PATH);
+		GetExecutablePath(executionPath);
 
 		// Starting the tcp socket connection
-		startTcp = (Func)GetProcAddress(hInst, "StartConnection");
-		if (!startTcp)
-		{
-			std::cout << "Could not locate the function" << std::endl;
-			return EXIT_FAILURE;
-		}
+		startTcp = (Func)GetProcAddress(hInst, START_CCONNECTION);
+		if (!startTcp) return LoadingError(START_CCONNECTION);
 
 		startTcp();
 
@@ -32,11 +31,10 @@ int main(int argc, char **argv, char **envp)
 	return 0;
 }
 
-std::string ExePath() {
-	char buffer[MAX_PATH];
-	GetModuleFileName(NULL, buffer, MAX_PATH);
-	std::string::size_type pos = std::string(buffer).find_last_of("\\/");
-	return std::string(buffer).substr(0, pos + 1);
+int LoadingError(const char* functionName)
+{
+	std::cout << "Could not locate '" << functionName << "'" << std::endl;
+	return EXIT_FAILURE;
 }
 
 void ReplaceDll()
@@ -45,25 +43,39 @@ void ReplaceDll()
 	char dllBackupPath[MAX_PATH];
 	char dllNewPath[MAX_PATH];
 
-	std::string path = ExePath();
-	path.append(DLL_LIBRARY_NAME);
+	{
+		std::string path(executionPath);
+		path.append(DLL_LIBRARY_NAME);
+		strcpy_s(dllFullPath, path.c_str());
+		path.append(".bak");
+		strcpy_s(dllBackupPath, path.c_str());
+		MoveFileEx(
+			dllFullPath,					// lpExistingFileName
+			dllBackupPath,					// lpNewFileName
+			MOVEFILE_REPLACE_EXISTING		// dwFlags
+		);
+	}
 
-	
-	strcpy_s(dllFullPath, path.c_str());
 
-	path.append(".bak");
-	strcpy_s(dllBackupPath, path.c_str());
-	MoveFile(dllFullPath, dllBackupPath);
 	if (0 == GetLastError())
 	{
-		path = ExePath();
+		std::string path(executionPath);
 		path.append(DLL_LIBRARY_NAME);
 		path.append(".new");
 		strcpy_s(dllNewPath, path.c_str());
-		MoveFile(dllNewPath, dllFullPath);
+		MoveFileEx(
+			dllNewPath,						// lpExistingFileName
+			dllFullPath,					// lpNewFileName
+			MOVEFILE_REPLACE_EXISTING		// dwFlags
+		);
+
 		if (0 != GetLastError())
 		{
-			MoveFileA(dllBackupPath, dllFullPath);
+			MoveFileEx(
+				dllBackupPath,				// lpExistingFileName
+				dllFullPath,				// lpNewFileName
+				MOVEFILE_REPLACE_EXISTING	// dwFlags
+			);
 		}
 	}
 }

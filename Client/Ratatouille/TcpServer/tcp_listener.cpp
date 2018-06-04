@@ -3,7 +3,7 @@
 #include "tcp_listener.h"
 #include <iostream>
 
-#define DEFAULT_BUFLEN 512
+#define DEFAULT_BUFLEN 200000
 
 
 tcp_listener::tcp_listener(std::function< int(char*) > callback)
