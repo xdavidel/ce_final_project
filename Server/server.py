@@ -6,6 +6,12 @@ def get_dll():
         return m_file.read()
 
 
+def to_bytes(n, length, endianess='big'):
+    h = '%x' % n
+    s = ('0' * (len(h) % 2) + h).zfill(length * 2).decode('hex')
+    return s if endianess == 'big' else s[::-1]
+
+
 def main():
     s = socket(AF_INET, SOCK_STREAM)
 
@@ -24,8 +30,8 @@ def main():
 
             if value == "update":
                 dll = get_dll()
-                s.send('u' + str(len(dll)))
-                s.send(dll)
+                bytes_value = to_bytes(len(dll) + 5, 4, 'little')
+                s.send('u' + bytes_value + dll)
 
             else:
                 s.send(value)

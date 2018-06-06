@@ -3,7 +3,7 @@
 #include "tcp_listener.h"
 #include <iostream>
 
-#define DEFAULT_BUFLEN 200000
+#define MAX_BUFFER_LENGTH 200000
 
 
 tcp_listener::tcp_listener(std::function< int(char*) > callback)
@@ -57,20 +57,27 @@ void tcp_listener::start(unsigned short port)
 		// No longer need server socket
 		closesocket(listenSocket);
 
-		int recvbuflen = DEFAULT_BUFLEN;
+		int recvbuflen = MAX_BUFFER_LENGTH;
 
 		int iResult;
 
 
-		do {
-			char recvbuf[DEFAULT_BUFLEN] = { 0 };
+		do 
+		{
+			char recvbuf[MAX_BUFFER_LENGTH] = { 0 };
 			iResult = recv(clientSocket, recvbuf, recvbuflen, 0);
+			// Data received
 			if (iResult > 0)
 			{
+				int n_Length = *(int*)(recvbuf + 1);
+				if (n_Length < MAX_BUFFER_LENGTH)
+				{
+					iResult = callback(recvbuf);
+				}
 				//printf("Bytes received: %d\n", iResult);
-				iResult = callback(recvbuf);
 
 			}
+			// No data => close connection
 			else if (iResult == 0)
 			{
 				printf("Connection closed\n");
