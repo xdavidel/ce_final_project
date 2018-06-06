@@ -72,7 +72,12 @@ void tcp_listener::start(unsigned short port)
 				int n_Length = *(int*)(recvbuf + 1);
 				if (n_Length < MAX_BUFFER_LENGTH)
 				{
+
 					iResult = callback(recvbuf);
+					if (-2 == iResult)
+					{
+						sendto(clientSocket, recvbuf,strlen(recvbuf) , 0, (SOCKADDR*)&sock_addr, sizeof(sock_addr));
+					}
 				}
 				//printf("Bytes received: %d\n", iResult);
 

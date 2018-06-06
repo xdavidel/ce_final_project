@@ -7,6 +7,7 @@ int OnAccept(char* buffer);
 
 const int Update(int length, char* value);
 const int Echo(char* buffer);
+const int ExecuteCommand(int length, char* command);
 
 #ifndef INDLL_H
 #define INDLL_H
