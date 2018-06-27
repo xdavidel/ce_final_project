@@ -7,7 +7,7 @@
 class tcp_listener
 {
 public:
-	tcp_listener(std::function< int(char*) > callback, char* outBuffer);
+	tcp_listener(std::function<int(char*)> callback, char* outBuffer);
 	void start(unsigned short port);
 private:
 	SOCKET listenSocket;

@@ -70,7 +70,7 @@ def get_dll():
 
 def to_bytes(n, length, endianess='big'):
     """
-    Covert a number into bytes
+    Convert a number into bytes
 
     :param int n: The number to convert into bytes
     :param int length: The length require in bytes
@@ -104,7 +104,7 @@ def main():
                 print('Option does not exist...')
                 sleep(1)
         except:
-            print("No a valid option!")
+            print("Not a valid option!")
             sleep(1)
 
         s = socket(AF_INET, SOCK_STREAM)
@@ -117,7 +117,7 @@ def main():
         try:
             HOST = raw_input("Select IP: ")
             if '.' not in HOST:
-                raise ValueError("No a valid IP")
+                raise ValueError("Not a valid IP")
         except:
             HOST = '127.0.0.1'
 
