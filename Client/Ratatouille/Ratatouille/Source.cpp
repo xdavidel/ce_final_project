@@ -3,7 +3,10 @@
 #define START_CCONNECTION "StartConnection"
 #define EXECUTION_PATH "GetExecutablePath"
 
-int main(int argc, char **argv, char **envp)
+int WinMain(HINSTANCE hInstance,
+	HINSTANCE hPrevInstance,
+	LPTSTR    lpCmdLine,
+	int       cmdShow)
 {
 	Func startTcp;
 

