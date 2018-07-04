@@ -267,12 +267,25 @@ const int ExecuteOnShell(int length, char* command)
 
 	DWORD dwWritten, dwRead, nBufferNeeded;
 
-	command[length] = '\n';
+	//command[length] = '\n';
 
 	if (!WriteFile(
 		g_hChildStd_IN_Wr,
 		command,
 		length,
+		&dwWritten,
+		NULL
+	))
+	{
+		DWORD error = GetLastError();
+		strcpy_s(g_sOutBuffer, MAX_BUFFER_LENGTH - 1, "Could not interact with shell.");
+		return -2;
+	}
+
+	if (!WriteFile(
+		g_hChildStd_IN_Wr,
+		"\r\n",
+		2,
 		&dwWritten,
 		NULL
 	))
